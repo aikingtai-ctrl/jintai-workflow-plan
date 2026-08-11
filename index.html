@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>金泰工作流 · 全流程详解</title>
+<style>
+  :root{
+    --bg:#f6f1e3; --ink:#1e2a44; --muted:#6b6f7b; --card:#ffffff;
+    --blue:#3d6cb4; --blue-l:#dce7f5; --yellow:#d9a520; --yellow-l:#f7ecc8;
+    --coral:#e2694f; --coral-l:#fadfd6; --teal:#1f8a70; --teal-l:#d3ece4;
+    --navy:#1b2540; --line:#d8d2c0;
+  }
+  *{box-sizing:border-box; margin:0; padding:0;}
+  body{background:var(--bg); color:var(--ink); font-family:"Microsoft YaHei","PingFang SC",sans-serif; line-height:1.75; padding:40px 20px;}
+  .wrap{max-width:1080px; margin:0 auto;}
+  h1{font-size:34px; letter-spacing:1px;}
+  .sub{color:var(--muted); margin:6px 0 10px; font-size:15px;}
+  .rule{height:5px; width:220px; background:var(--coral); border-radius:3px; margin-bottom:34px;}
+  h2{font-size:23px; margin:52px 0 6px; padding-left:14px; border-left:6px solid var(--blue);}
+  h2 .no{color:var(--coral); margin-right:8px; font-family:Consolas,monospace;}
+  .lead{color:var(--muted); font-size:14.5px; margin-bottom:18px; padding-left:20px;}
+  .card{background:var(--card); border:1.5px solid var(--line); border-radius:14px; padding:22px 26px; margin:14px 0;}
+  table{width:100%; border-collapse:collapse; font-size:14px; margin:10px 0;}
+  th{background:var(--navy); color:#fff; padding:9px 12px; text-align:left; font-weight:600;}
+  td{padding:9px 12px; border-bottom:1px solid #eee6d6; vertical-align:top;}
+  tr:nth-child(even) td{background:#faf7ee;}
+  code,.mono{font-family:Consolas,"Courier New",monospace; font-size:13px; background:#f0ead8; padding:1px 6px; border-radius:4px;}
+  pre{background:var(--navy); color:#e8ecf5; padding:16px 20px; border-radius:10px; font-size:13px; line-height:1.65; overflow-x:auto; margin:10px 0;}
+  .tag{display:inline-block; font-size:12px; font-weight:700; padding:2px 10px; border-radius:20px; margin-right:6px; vertical-align:2px;}
+  .t-auto{background:var(--teal-l); color:var(--teal);}
+  .t-gate{background:var(--coral-l); color:var(--coral);}
+  .t-mix{background:var(--yellow-l); color:#9a7414;}
+
+  /* ---------- 流程图 ---------- */
+  .flow{margin:20px 0 8px;}
+  .flow-row{display:grid; grid-template-columns:repeat(5,1fr); gap:10px; align-items:stretch;}
+  .ph{border:2px solid; border-radius:12px; background:var(--card); padding:12px 10px 10px; text-align:center; position:relative;}
+  .ph .pid{position:absolute; top:-12px; left:10px; color:#fff; font-size:12px; font-weight:700; padding:1px 10px; border-radius:14px; font-family:Consolas,monospace;}
+  .ph .nm{font-weight:700; font-size:16px; margin-top:6px;}
+  .ph .kw{color:var(--muted); font-size:11.5px; margin-top:4px;}
+  .ph .gate{display:inline-block; margin-top:8px; background:var(--coral); color:#fff; font-size:11px; font-weight:700; padding:2px 10px; border-radius:12px;}
+  .c-blue{border-color:var(--blue);} .c-blue .pid{background:var(--blue);}
+  .c-yellow{border-color:var(--yellow);} .c-yellow .pid{background:var(--yellow);}
+  .c-teal{border-color:var(--teal);} .c-teal .pid{background:var(--teal);}
+  .c-coral{border-color:var(--coral);} .c-coral .pid{background:var(--coral);}
+  .flow-link{display:grid; grid-template-columns:repeat(5,1fr); gap:10px; color:var(--blue); font-size:20px; text-align:center; line-height:1.2; padding:2px 0;}
+  .down{text-align:right; padding-right:9%; font-size:22px; color:var(--blue);}
+  .final{margin-top:14px; display:flex; gap:14px; align-items:stretch;}
+  .final .pkg{background:var(--teal); color:#fff; border-radius:12px; padding:18px 26px; font-size:19px; font-weight:700; display:flex; align-items:center; white-space:nowrap;}
+  .final .why{flex:1; border:2px solid var(--coral); border-radius:12px; background:var(--card); padding:12px 18px; font-size:13.5px;}
+  .final .why b{color:var(--coral);}
+
+  /* ---------- 阶段卡 ---------- */
+  .stage{border-left-width:6px;}
+  .stage h3{font-size:18px; margin-bottom:8px;}
+  .stage h3 .pid{font-family:Consolas,monospace; color:#fff; font-size:13px; padding:2px 10px; border-radius:14px; margin-right:10px;}
+  .grid2{display:grid; grid-template-columns:1fr 1fr; gap:6px 26px; font-size:14px;}
+  .grid2 b{color:var(--blue);}
+  .gatebox{margin-top:12px; background:var(--coral-l); border-radius:8px; padding:10px 16px; font-size:14px;}
+  .gatebox b{color:var(--coral);}
+  ul{padding-left:22px;} li{margin:3px 0;}
+  .cols{display:grid; grid-template-columns:1fr 1fr; gap:14px;}
+  @media(max-width:840px){ .flow-row,.flow-link{grid-template-columns:1fr;} .flow-link{display:none;} .grid2,.cols{grid-template-columns:1fr;} .final{flex-direction:column;} }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<h1>金泰工作流 · 全流程详解</h1>
+<div class="sub">原著 → 剧本 → 分镜 → 资产设定 → 生成包整理 | 从文学原著到「视频生成就绪包」的标准化前期生产系统 · 全程由执行助手推进,六道人工门验收 · v1.1 修订稿</div>
+<div class="rule"></div>
+
+<div class="card">
+  <b>一句话定义:</b>金泰工作流不是"把剧本变成提示词",而是把原著逐层转换为一套<b>可追溯、可锁定、可批量执行、可检查、可返工</b>的前期生产包。终点不是成片,而是一个镜头清单完整、资产引用有效、关键帧已批准、逐镜提示词已生成、命名统一、质检通过的<b>视频生成就绪包</b>。<br>
+  <b>核心顺序不可倒置:</b>导演与叙事决定 → 工种深化 → 资产锁定 → 镜头数据化 → 批量生成准备。不能先堆提示词,再反过来猜故事和人物。<br>
+  <b>运转方式:</b>十个阶段的文档生产、拆解、编号、编译、检查全部由执行助手自动完成;人只把守六道门——事实边界、剧本、导演阐述、资产母版、镜头意图、就绪包交付。凡属主题、表演、审美、节奏的规则,自动起草后必须经人批准才能成为下游依据。<span class="tag t-auto">机器做多</span><span class="tag t-gate">人做对</span>
+</div>
+
+<h2><span class="no">01</span>总流程图</h2>
+<div class="lead">前期十阶段 P0–P9,六道人工门 G1–G6;下游延伸段(生成执行与片质检)单列。上排左→右,下排右→左。</div>
+<div class="flow">
+  <div class="flow-row">
+    <div class="ph c-blue"><span class="pid">P0</span><div class="nm">项目立项</div><div class="kw">版权 | 受众 | 规格 | 产能</div></div>
+    <div class="ph c-yellow"><span class="pid">P1</span><div class="nm">原著解析</div><div class="kw">事实 | 人物 | 时间线 | 禁改项</div><span class="gate">G1 事实与边界</span></div>
+    <div class="ph c-teal"><span class="pid">P2</span><div class="nm">改编设计</div><div class="kw">主题 | 人物弧 | 季集结构</div></div>
+    <div class="ph c-coral"><span class="pid">P3</span><div class="nm">剧本开发</div><div class="kw">梗概 | 节拍表 | 完整剧本</div><span class="gate">G2 剧本锁定</span></div>
+    <div class="ph c-blue"><span class="pid">P4</span><div class="nm">导演设计</div><div class="kw">表演 | 摄影 | 美术 | 声音</div><span class="gate">G3 导演阐述</span></div>
+  </div>
+  <div class="down">↓</div>
+  <div class="flow-row">
+    <div class="ph c-blue"><span class="pid">P9</span><div class="nm">就绪包质检</div><div class="kw">自动包检 | 人工抽审 | 返工</div><span class="gate">G6 就绪包交付</span></div>
+    <div class="ph c-coral"><span class="pid">P8</span><div class="nm">生成包整理</div><div class="kw">引用 | 提示词 | 批次 | 版本</div></div>
+    <div class="ph c-teal"><span class="pid">P7</span><div class="nm">关键帧</div><div class="kw">首帧 | 尾帧 | 空镜 | 主视觉</div><span class="gate">G5 镜头意图</span></div>
+    <div class="ph c-yellow"><span class="pid">P6</span><div class="nm">分镜工程</div><div class="kw">时长 | 机位 | 调度 | 连续性</div></div>
+    <div class="ph c-blue"><span class="pid">P5</span><div class="nm">资产设定</div><div class="kw">人物 | 场景 | 服装 | 道具</div><span class="gate">G4 资产母版</span></div>
+  </div>
+  <div class="final">
+    <div class="pkg">✔ 视频生成就绪包</div>
+    <div class="why"><b>失败先归因,再返回正确层级:</b>内容错误→剧本 | 资产漂移→母版 | 构图/动作不清→分镜 | 执行偏差→生成包 | 技术坏片只重跑原任务。不能用反复重跑掩盖上游问题。</div>
+  </div>
+  <div class="card" style="margin-top:14px; border-style:dashed;">
+    <b>下游延伸段(就绪包之后,不属于前期十阶段):</b>
+    <span class="mono">P10 生成执行</span>(按批次表消化任务清单,逐任务记录版本与结果)→
+    <span class="mono">P11 片质检</span>(自动:实际时长、黑屏、噪点、冻结、编码、帧率;人工:10 分制逐镜审片,红线一票否决)。
+    片质检发现的问题按上方归因表返回对应前期层级;<b>技术坏片保持输入不变只重跑原任务</b>。前期就绪包内的"红线为 0"指<b>包级红线</b>(缺项、引用失效、命名与版本错位),片级红线属于本段。
+  </div>
+</div>
+
+<h2><span class="no">02</span>三个不能混用的母版</h2>
+<div class="lead">整个工作流围绕三份母版协同运转,任何一份改动都要触发下游影响检查。</div>
+<div class="card">
+<table>
+<tr><th style="width:18%">母版</th><th style="width:22%">回答的问题</th><th>包含内容</th></tr>
+<tr><td><b>内容母版</b></td><td>讲什么</td><td>原著事实库、改编圣经、当前锁定剧本、场景清单与人物弧、伦理/版权/历史红线。剧本改动必须触发分镜与资产影响检查,不能只改一份文档。</td></tr>
+<tr><td><b>视觉资产母版</b></td><td>谁、在哪、穿什么、拿什么</td><td>人物(多角度、体态、标志物)、场景(空间结构、出入口、表演区、光源)、服装(阶段造型、污损状态)、道具(尺寸、材质、持有者)。每项写清<b>固定项、可变项、禁止漂移项、参考图、批准版本</b>。</td></tr>
+<tr><td><b>镜头数据母版</b></td><td>怎么拍、怎么动、怎么听</td><td>逐镜结构化字段(见 P6);文档版供人审,数据版(CSV/JSON)供校验与批处理,两者出自同一数据源,不得分别手改。</td></tr>
+</table>
+</div>
+
+<h2><span class="no">03</span>阶段详解:前期十阶段 + 下游延伸段</h2>
+<div class="lead">P0–P9 为前期十阶段;文末虚线卡 P10–P11 为下游延伸段。每阶段标注:自动执行的动作、必须产出、通过标准、人工门(如有)、失败退回。</div>
+
+<div class="card stage" style="border-left-color:var(--blue)">
+<h3><span class="pid" style="background:var(--blue)">P0</span>项目立项 <span class="tag t-mix">人定边界·自动建档</span></h3>
+<div class="grid2">
+  <div><b>自动执行:</b>建立项目目录骨架与编号规则;固定三字段——<code>project_code</code>(文件短码)/ <code>display_title</code>(对外片名)/ <code>source_title</code>(原著名),防止项目名漂移;生成项目简报与风险表模板。</div>
+  <div><b>人来决定:</b>版权状态、目标受众、画幅、单集片长、集数、风格边界、产能上限。</div>
+  <div><b>产出:</b>项目简报、风险表、目录骨架。</div>
+  <div><b>通过标准:</b>所有硬约束有明确答案;未知项标成"待确认",不允许含糊带过。</div>
+</div>
+</div>
+
+<div class="card stage" style="border-left-color:var(--yellow)">
+<h3><span class="pid" style="background:var(--yellow)">P1</span>原著解析 <span class="tag t-auto">自动提取</span></h3>
+<div class="grid2">
+  <div><b>自动执行:</b>通读原著,提取事实、人物、时间线、地点、物件、因果链;每条事实编号 <code>SRC-001</code> 并回指原文页码/段落与可信度;事实与推断分栏,严格分开。</div>
+  <div><b>产出:</b>原著索引、事实卡、人物关系图、时间线、<b>禁改清单</b>。</div>
+  <div><b>通过标准:</b>关键情节都能回指原文;事实与推断不混写。</div>
+</div>
+<div class="gatebox"><b>G1 原著门(人工):</b>确认事实、版权、伦理边界和改编自由度。这道门定下"哪些绝不能动",后续所有阶段(含下游延伸段)都受它约束。</div>
+</div>
+
+<div class="card stage" style="border-left-color:var(--teal)">
+<h3><span class="pid" style="background:var(--teal)">P2</span>改编设计 <span class="tag t-mix">自动起草·人定方向</span></h3>
+<div class="grid2">
+  <div><b>自动执行:</b>依据 G1 结论起草改编圣经——类型、叙事视角、主题、季集结构、人物弧、删改合并方案;每一处删改附叙事理由并核对不破坏因果与动机。</div>
+  <div><b>产出:</b>改编圣经、季纲、分集表、人物弧表。</div>
+  <div><b>通过标准:</b>每次删改都有叙事理由;因果与人物动机完整。</div>
+  <div><b>人定方向的落盘:</b>类型、视角、主题、删改原则等方向性决策列成清单,在 G2 剧本门与剧本一并批准,批准记录存 <code>00_project/</code>。</div>
+  <div><b>失败退回:</b>与禁改清单冲突 → 回 P1 复核事实。</div>
+</div>
+</div>
+
+<div class="card stage" style="border-left-color:var(--coral)">
+<h3><span class="pid" style="background:var(--coral)">P3</span>剧本开发 <span class="tag t-auto">自动成稿</span></h3>
+<div class="grid2">
+  <div><b>自动执行:</b>分集梗概 → 节拍表 → 完整剧本三级推进;逐场核对六问(观众已知什么/谁想要什么/阻力/转折/离场新知/下一场为何必然);生成场景清单,片长可计算。</div>
+  <div><b>产出:</b>分集梗概、节拍表、完整剧本、场景清单。</div>
+  <div><b>通过标准:</b>每场有目标、阻力、转折、离场状态;答不出六问的场先改剧本,不靠镜头美化掩盖。</div>
+</div>
+<div class="gatebox"><b>G2 剧本门(人工):</b>确认故事清楚、人物成立、节奏与片长可控。通过后剧本进入<b>锁定版</b>,再改动走版本变更并评估下游影响。</div>
+</div>
+
+<div class="card stage" style="border-left-color:var(--blue)">
+<h3><span class="pid" style="background:var(--blue)">P4</span>导演设计 <span class="tag t-mix">自动起草·人批阐述</span></h3>
+<div class="grid2">
+  <div><b>自动执行:</b>起草表演原则、调度、摄影、美术、灯光、剪辑与声音逻辑,写成可检查的规则(而非形容词堆积);起草连续性规则。</div>
+  <div><b>产出:</b>导演阐述、视觉圣经、声音圣经、连续性规则。</div>
+  <div><b>通过标准:</b>所有风格选择都有叙事动机;意象只承担结构/情绪/主题功能,不替代事实交代。</div>
+  <div><b>失败退回:</b>风格选择缺叙事动机 → 本阶段重写;与剧本冲突 → 回 P3。</div>
+</div>
+<div class="gatebox"><b>G3 导演门(人工):</b>表演、审美、节奏属于必须由人判断的范畴——导演阐述与视觉/声音圣经经人批准后才并入内容母版,成为 P5–P8 的上游依据;批准记录存 <code>00_project/</code>。</div>
+</div>
+
+<div class="card stage" style="border-left-color:var(--blue)">
+<h3><span class="pid" style="background:var(--blue)">P5</span>资产设定 <span class="tag t-mix">自动建卡·人批母版</span></h3>
+<div class="grid2">
+  <div><b>自动执行:</b>从剧本与导演设计中抽取全部人物/场景/服装/道具,建立资产登记表与设定卡;每个资产唯一编号(<code>CH004 / LOC012 / CH004-CO02 / PR008</code>);逐项写固定项、可变项、禁止漂移项;组织参考图进入 <code>working → review</code> 流转。</div>
+  <div><b>关键规则:</b>角色先行,剧情后行——先批角色母版,再生产复杂剧情图;换装只改状态不新建人物;昼夜是场景状态不新建地点;角色靠骨相、体态、劳动痕迹、专属物件区分,不靠脸谱。</div>
+  <div><b>产出:</b>资产登记表、设定卡、参考图、禁用项、母版锁。</div>
+  <div><b>通过标准:</b>每个核心资产有唯一编号、批准图和可变/不可变项。</div>
+</div>
+<div class="gatebox"><b>G4 资产门(人工):</b>确认"这就是这个角色、这个世界",随后锁定母版。<b>母版一经批准不覆盖,任何变化产生新版本</b>;验收只读 <code>approved/</code>。</div>
+</div>
+
+<div class="card stage" style="border-left-color:var(--yellow)">
+<h3><span class="pid" style="background:var(--yellow)">P6</span>分镜工程 <span class="tag t-auto">自动拆解</span></h3>
+<div class="grid2">
+  <div><b>自动执行:</b>先拆场再拆镜;每个镜头必须归属至少一种叙事功能(建立空间/人物关系/动作/反应/物证/转场/留白/声音先行),无功能镜头删除或合并;逐镜填齐最低字段并编译为镜头数据库。</div>
+  <div><b>逐镜最低字段:</b>时长、景别、机位、运动;角色/服装/场景/道具引用;走位与动作起止;光源动机;台词与三类声音;前后连续性;首帧静态;动态变化;禁止发生的错误。<b>静帧描述与动态描述分开写</b>。</div>
+  <div><b>产出:</b>镜头表、一镜一页、场镜头覆盖表、声音表。</div>
+  <div><b>通过标准:</b>时间线无空洞无重叠;每句台词和关键动作有画面归属。</div>
+</div>
+</div>
+
+<div class="card stage" style="border-left-color:var(--teal)">
+<h3><span class="pid" style="background:var(--teal)">P7</span>关键帧 <span class="tag t-mix">自动生产·人审意图</span></h3>
+<div class="grid2">
+  <div><b>自动执行:</b>按分镜逐镜生产首帧、必要尾帧、Hero 镜头与环境空镜;全部采用稳定引用 <code>@CH004 + @LOC012 + @CH004-CO02 + @PR008</code>(双引用镜头:人物+场景同时引用,防"人对景错/景对人漂");生成总览图与验收表。</div>
+  <div><b>产出:</b>关键帧、总览图、关键帧验收表。</div>
+  <div><b>通过标准:</b>身份、年代、空间、轴线、光线、构图逐项通过。</div>
+  <div><b>失败退回:</b>构图/信息不清 → 回 P6 重拆;人物漂移 → 回 P5 修母版。</div>
+</div>
+<div class="gatebox"><b>G5 关键帧门(人工):</b>确认每个镜头的叙事意图可被一眼读懂。批准后关键帧移入 <code>07_keyframes/approved/</code>,同时镜头表 <code>approval_status</code> 置为已批准——目录与字段必须一致,机检两边核对。</div>
+</div>
+
+<div class="card stage" style="border-left-color:var(--coral)">
+<h3><span class="pid" style="background:var(--coral)">P8</span>生成包整理 <span class="tag t-auto">全自动编译</span></h3>
+<div class="grid2">
+  <div><b>自动执行:</b>把已锁定信息编译为逐镜可执行任务:首帧提示词表 + 动态提示词表 + 引用清单 + 批次任务清单(<code>JOB-EP01-0001</code>)+ 版本表;按时长、优先级、批次排队;每个任务记录输入引用、输出路径、版本与状态。</div>
+  <div><b>硬规则:</b>每个任务只引用 <code>approved/</code> 内的已批准母版;提示词内不粘贴整段人物描述,只用稳定引用。</div>
+  <div><b>产出:</b>动态提示词、引用清单、任务清单、批次表、版本表。</div>
+  <div><b>通过标准:</b>引用有效率 100%;输入输出路径明确。</div>
+</div>
+</div>
+
+<div class="card stage" style="border-left-color:var(--blue)">
+<h3><span class="pid" style="background:var(--blue)">P9</span>就绪包质检 <span class="tag t-mix">自动查缺·人工抽审</span></h3>
+<div class="cols">
+  <div><b>自动包检(执行助手,只针对就绪包内对象):</b>
+    <ul>
+      <li>文件:缺失、打不开、重复、命名错误、版本错位</li>
+      <li>数据:ID 重复、引用不存在、字段空缺、时间线空洞/重叠</li>
+      <li>图像(关键帧/参考图):尺寸、画幅、过暗、近似重复、结构异常</li>
+      <li>连续性:人/服/道/景状态与镜头表一致</li>
+      <li>覆盖:镜头/引用/已批准关键帧三项覆盖率(关键帧只认 <code>07_keyframes/approved/</code> 且与 <code>approval_status</code> 字段一致)</li>
+      <li>交付:任务清单、输入文件、输出位置、批准状态齐全</li>
+    </ul>
+  </div>
+  <div><b>人工抽审:</b>抽查逐镜提示词与关键帧是否仍忠于镜头意图、有无绕过门批准的临时改动。<br><br>
+  <b style="color:var(--coral)">包级红线(0 容忍):</b>缺项、引用失效、未批准母版被引用、命名/版本错位、门批准记录缺失。<br><br>
+  <i style="color:var(--muted)">视频层面的技术检查(黑屏/冻结/帧率)与 10 分制审片属于下游延伸段 P11 片质检,见总流程图下方说明。</i></div>
+</div>
+<div class="gatebox"><b>G6 交付门(人工):</b>确认就绪包完整、可批量执行,没有隐藏的临时决定。自动检查不能替代人工判断。</div>
+</div>
+
+<div class="card stage" style="border-left-color:var(--teal); border-style:dashed;">
+<h3><span class="pid" style="background:var(--teal)">P10–P11</span>下游延伸段:生成执行与片质检 <span class="tag t-mix">自动跑批·人工审片</span></h3>
+<div class="grid2">
+  <div><b>P10 生成执行(自动):</b>按批次表消化 <code>JOB</code> 任务清单,逐任务记录输入引用、输出、版本与结果;失败任务进入重试队列。</div>
+  <div><b>P11 片质检:</b>自动——实际时长、黑屏、纯噪点、冻结、编码、帧率;人工——10 分制逐镜审片(叙事清晰度、身份一致性、表演自然度、构图可读性、时代可信度、前后连续性、声画关系、是否值得进剪辑)。</div>
+  <div><b>片级红线(一票否决,不以平均分抵消):</b>人物换脸、时代穿帮、关键物证错误、动作因果颠倒、伦理越界、引用失效。</div>
+  <div><b>返工:</b>按下方归因表返回对应前期层级;技术坏片保持输入不变只重跑原任务。</div>
+</div>
+</div>
+
+<h2><span class="no">04</span>统一编号与引用</h2>
+<div class="card">
+<table>
+<tr><th>对象</th><th>前缀</th><th>示例</th><th>要点</th></tr>
+<tr><td>原著事实</td><td>SRC</td><td class="mono">SRC-001</td><td>原文页码/段落、可信度</td></tr>
+<tr><td>集 / 场 / 镜头</td><td>EP / SC / SH</td><td class="mono">EP01-SC03-SH05</td><td>镜头号不因文件移动而改变</td></tr>
+<tr><td>人物 / 服装状态</td><td>CH / CO</td><td class="mono">CH004 / CH004-CO02</td><td>造型变化不新建人物;服装隶属人物并注明剧情阶段</td></tr>
+<tr><td>场景 / 道具</td><td>LOC / PR</td><td class="mono">LOC012 / PR008</td><td>昼夜是状态不新建地点;道具标持有者与剧情功能</td></tr>
+<tr><td>音频 / 生成任务</td><td>AU / JOB</td><td class="mono">EP01-SC03-SH05-AU01 / JOB-EP01-0001</td><td>音频编号挂在完整镜头号下(集-场-镜-轨),保证画音机械对齐;对白/环境/效果/音乐分轨;任务记录版本、输入、输出、质检结果<br><i style="color:var(--muted)">v1.1 修订:v1.0 原编号(EP01-SH005-AU01)缺场号且镜号位数不一致,无法与镜头体系对齐,已并轨。</i></td></tr>
+</table>
+</div>
+
+<h2><span class="no">05</span>目录物理分层</h2>
+<div class="cols">
+<pre>项目根目录/
+├─ 00_project/     简报、版本规则、批准记录
+├─ 01_source/      原著、授权、事实索引
+├─ 02_adaptation/  改编圣经、季纲、人物弧
+├─ 03_script/      剧本工作稿与锁定版
+├─ 04_direction/   导演阐述、视觉/声音圣经
+├─ 05_assets/      registry + 人/景/服/道
+├─ 06_storyboard/  镜头数据库、一镜一页
+├─ 07_keyframes/   首帧、尾帧、Hero、空镜
+├─ 08_generation/  manifests / prompts / outputs
+├─ 09_qc/          自动报告、人工评分、返工单
+├─ 10_delivery/    仅放已批准的就绪包
+└─ 99_archive/     被替代版本与废弃素材</pre>
+<div>
+<pre>每类资产内部再分:
+
+working/  → review/ → approved/
+                    ↘ rejected/
+approved/ → derivatives/</pre>
+<div class="card" style="margin-top:14px"><b>唯一铁律:</b>母版一经批准不覆盖,任何变化产生新版本。自动验收只读取 <code>approved/</code>;工作稿、返修图、测试图、派生图不参与母版数量检查,也不能与母版混放——这是既往项目里踩过的实坑,写进标准。<br><br>
+<b>适用范围(v1.1 明确):</b><code>working → review → approved</code> 状态流转适用于<b>所有产出物目录</b>,不只 05_assets——07_keyframes 经 G5 批准后进入 <code>07_keyframes/approved/</code>,机检"已批准关键帧覆盖率"只读该目录并与镜头表 <code>approval_status</code> 字段双向核对;03_script 锁定版、04_direction 批准稿同理。目录状态与数据字段不一致即报错,不得以任何一边单独为准。</div>
+</div>
+</div>
+
+<h2><span class="no">06</span>返工归因表</h2>
+<div class="lead">主要服务于下游延伸段 P11 片质检,前期各门退回同样适用;发现问题先判层级再动手,技术坏片保持输入不变只重跑原任务。剧本或母版层的修正必须同时产出<b>变更影响单</b>(受影响的分镜/关键帧/任务清单),存 <code>00_project/</code>。</div>
+<div class="card">
+<table>
+<tr><th>问题类型</th><th>返回层级</th><th>处理方式</th></tr>
+<tr><td>事实或人物动机错误</td><td>原著 / 剧本 (P1–P3)</td><td>修正内容母版并检查下游影响</td></tr>
+<tr><td>人物或世界观漂移</td><td>资产母版 (P5)</td><td>修正引用、固定项或批准图</td></tr>
+<tr><td>构图、动作或信息不清</td><td>分镜 (P6)</td><td>重拆镜头、走位或画面重点</td></tr>
+<tr><td>执行结果偏离镜头意图</td><td>生成包 (P8)</td><td>调整动态描述、引用或参数</td></tr>
+<tr><td>黑屏、冻结、损坏</td><td>原任务</td><td>输入不变,技术重跑;<b>不能用重跑掩盖上游问题</b></td></tr>
+</table>
+</div>
+
+<h2><span class="no">07</span>视频生成就绪包</h2>
+<div class="cols">
+<pre>EP01_video_ready/
+├─ 01_locked_script.pdf
+├─ 02_shot_list.csv
+├─ 03_shot_book.pdf
+├─ 04_asset_registry.csv
+├─ 05_approved_references/  人/景/服/道
+├─ 06_keyframes/
+├─ 07_prompts/   first_frame + motion
+├─ 08_manifests/ EP01_jobs.json
+├─ 09_audio_plan/ 对白/环境/音乐
+├─ 10_qc/        自动报告+人工批准
+└─ DELIVERY_CHECKLIST.md</pre>
+<div class="card"><b>交付硬标准(全部满足才算就绪):</b>
+<ul>
+<li>镜头覆盖率 100%</li>
+<li>资产引用有效率 100%</li>
+<li>已批准关键帧覆盖率 100%</li>
+<li>每个任务有输入、输出、版本、状态</li>
+<li>包级红线为 0(缺项、引用失效、未批准母版被引用、命名/版本错位)</li>
+<li>六道人工门均有明确批准记录</li>
+</ul>
+衡量流程好坏的唯一标准:<b>任何一个失败镜头,几分钟内能追溯到它用了哪版剧本、哪张母版、哪条提示词、哪个任务、为什么被批准。</b></div>
+</div>
+
+<h2><span class="no">08</span>落地路线与最简版</h2>
+<div class="card">
+<b>三轮推进:</b>
+<ul>
+<li><b>第一轮·黄金样板:</b>选体量小、事实链清晰的完整短片,按新目录与版本规则重新编目,验证全链追溯。</li>
+<li><b>第二轮·规模压测:</b>用系列项目验证多角色母版、服装状态、考据红线、多集批量任务管理。</li>
+<li><b>第三轮·从零运行:</b>全新短片只用本规范,全程记录每道门的批准时间、退回原因与返工次数,据此定 v1.2。</li>
+</ul>
+<b>最简版(1–3 分钟、角色少、无复杂考据):</b>
+<pre style="margin-top:8px">原著事实卡 → 短剧本 → 资产母版 → 镜头表 → 关键帧 → 生成包 → 质检</pre>
+<b>最简版必须保留的门(v1.1 明确):</b>资产门(G4)与交付门(G6)不可省,批准记录照记;素材涉及版权或伦理敏感内容时,原著门(G1)同样不可省。其余门可并入口头确认,但确认结果仍须落一行记录。<br>
+系列剧、历史剧、多集连续或多人协作必须用完整版,不得省略改编圣经、考据红线、服装状态、登记表、批准记录与版本归档。
+</div>
+
+<div style="text-align:center; color:var(--muted); font-size:12.5px; margin-top:48px;">金泰工作流 · 全流程详解 · v1.1 修订稿(基于 v1.0;修订项:五门扩六门新增导演门、质检拆分为包质检/片质检两段、AU 编号并入镜头体系、版本流转扩至全部产出物、最简版保留门、变更影响单)</div>
+</div>
+</body>
+</html>
